@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jt.order.mapper.OrderMapper">
+	<!-- 构造resultMap：订单-订单商品-订单物流 -->
+	<resultMap type="Order" id="orderRM" autoMapping="true">
+		<id column="order_id" property="orderId"/>
+		<!-- 先写一对一 -->
+		<association property="orderShipping" javaType="OrderShipping" column="order_id" select="queryOrderShippingById">
+		</association>
+		<!-- 再写一对多 -->
+		<collection property="orderItems" column="order_id" javaType="ArrayList" ofType="orderItem" select="queryOrderItemById">
+		
+		</collection>
+	</resultMap>
+	
+	<!-- 查主表 -->
+	<select id="queryOrderById" parameterType="string" resultMap="orderRM">
+		SELECT * FROM tb_order WHERE order_id=#{orderId}
+	</select>
+	
+	<!-- 查shipping物流信息 -->
+	<select id="queryOrderShippingById" parameterType="string" resultType="OrderShipping">
+		SELECT * FROM tb_order_shipping WHERE order_id=#{orderId}
+	</select>
+	
+	<!-- 查order——item -->
+	<select id="queryOrderItemById"  parameterType="string" resultType="OrderItem">
+		SELECT * FROM tb_order_item WHERE order_id=#{orderId}
+	</select>
+	
+	<!-- mysql支持新增对象关联 -->
+	<insert id="createOrder" parameterType="Order" >
+		INSERT INTO tb_order (
+			order_id, payment, payment_type ,post_fee, STATUS , payment_time,consign_time, end_time,close_time,shipping_name, shipping_code, user_id , buyer_message,buyer_nick,buyer_rate,created,updated)
+		VALUES (
+		  #{orderId},#{payment},#{paymentType},#{postFee},1,#{paymentTime},#{consignTime},#{ endTime},#{closeTime},#{shippingName},#{shippingCode},#{userId },#{buyerMessage},#{buyerNick},#{buyerRate},NOW(),NOW()
+		  );
+		  
+		 
+		 INSERT INTO tb_order_shipping(
+		 	 order_id,receiver_name,receiver_phone,receiver_mobile,receiver_state,receiver_city,receiver_district,receiver_address,receiver_zip,created,updated 
+		  )VALUES (
+				#{orderId},#{orderShipping.receiverName},#{orderShipping.receiverPhone},#{orderShipping.receiverMobile},#{orderShipping.receiverState},#{orderShipping.receiverCity},#{orderShipping.receiverDistrict},#{orderShipping.receiverAddress},#{orderShipping.receiverZip},NOW(),NOW()
+		  );
+		  
+		  INSERT INTO tb_order_item (title,item_id,order_id,num,price,total_fee,pic_path)
+			 VALUES
+			<foreach collection="orderItems" item="item" separator=",">
+			(
+				#{item.title},#{item.itemId},#{orderId},#{item.num},#{item.price},#{item.totalFee},#{item.picPath}
+			)
+			</foreach> 
+			 ; 
+		  
+	</insert>
+	
+	<!-- 定时任务 -->
+	<update id="updatePaymentStatus">
+		update tb_order set status=6,close_time=now(),end_time=now() where status=1 and payment_type=1 and created &lt;=#{date}
+	</update>
+</mapper>

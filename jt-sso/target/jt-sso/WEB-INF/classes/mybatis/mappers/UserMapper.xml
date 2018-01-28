@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jt.sso.mapper.UserMapper">
+
+	<select id="check" resultType="int">
+		SELECT COUNT(1) FROM tb_user WHERE ${colname} = #{val}
+	</select>
+	
+	<insert id="save" parameterType="User" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		INSERT INTO tb_user (
+			id,
+			username,
+			password,
+			phone,
+			email,
+			created,
+			updated
+		)
+		VALUES
+			(
+				NULL,
+				#{username},
+				#{password},
+				#{phone},
+				#{email},
+				NOW(),
+				NOW()
+	);
+	</insert>
+	
+	<select id="login" parameterType="String" resultType="User">
+		SELECT * FROM tb_user WHERE username = #{userName}
+	</select>
+	
+</mapper>

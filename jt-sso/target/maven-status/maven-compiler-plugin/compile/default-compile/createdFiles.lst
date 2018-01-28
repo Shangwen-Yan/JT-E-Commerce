@@ -1,0 +1,6 @@
+com\jt\sso\pojo\BasePojo.class
+com\jt\sso\service\UserService.class
+com\jt\sso\dubbo\DubboUserServiceImpl.class
+com\jt\sso\controller\UserController.class
+com\jt\sso\mapper\UserMapper.class
+com\jt\sso\pojo\User.class
